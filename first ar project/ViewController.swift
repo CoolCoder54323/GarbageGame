@@ -7,27 +7,73 @@
 //
 
 import UIKit
-import SceneKit
+import SceneKit//3d objects
 import ARKit
+
+class MaterialText {
+    var text: SCNText
+    var material: SCNMaterial { return text.materials.first! }
+    
+    init(text: SCNText, material: SCNMaterial) {
+        self.text = text
+        self.text.materials = [material] //makes the objct into your text
+    }
+    
+    func setColor(_ color: UIColor) {
+        text.materials.first?.diffuse.contents = color //turns it a color
+    }
+}
 
 class ViewController: UIViewController, ARSCNViewDelegate {
 
-    @IBOutlet var sceneView: ARSCNView!
+    @IBOutlet var sceneView: ARSCNView!//displaying a veiw of flight camerea feed in which we are going to display our 3d objects
     
+    var isStartingGame = true
+    
+   //runs when view loads
     override func viewDidLoad() {
         super.viewDidLoad()
         
         // Set the view's delegate
         sceneView.delegate = self
+       
+        // Create and pass a text and a material object into our custom class
+        let materialText = MaterialText(text: SCNText(string:"By:inVeNT", extrusionDepth:0.1),material: SCNMaterial())
+        materialText.setColor(UIColor.orange)
         
-        // Show statistics such as fps and timing information
-        sceneView.showsStatistics = true
+        let node = SCNNode()
         
-        // Create a new scene
-        let scene = SCNScene(named: "art.scnassets/ship.scn")!
+        node.position = SCNVector3(x: 0.05, y: -0.25, z:-3)
+        node.scale = SCNVector3(x: 0.01, y: 0.01, z: 0.1)
+        node.geometry = materialText.text
         
-        // Set the scene to the view
-        sceneView.scene = scene
+        sceneView.scene.rootNode.addChildNode(node)
+        sceneView.autoenablesDefaultLighting = true
+        
+        
+        let text = SCNText(string: "Garbage Game ", extrusionDepth: 1)//extrusiondepth is the thickness of the object
+        
+        
+        let materialtwo = SCNMaterial()//creates a material object
+        
+        materialtwo.diffuse.contents = UIColor.green//turns it a color
+   
+        
+        text.materials = [materialtwo]//makes the objct into your text
+    
+        let nodetwo = SCNNode()
+        
+        nodetwo.position = SCNVector3(x: 0.02, y: 0.2, z: -3)
+        nodetwo.scale = SCNVector3(x: 0.01, y: 0.01, z: 0.1)
+        nodetwo.geometry = text
+    
+        sceneView.scene.rootNode.addChildNode(nodetwo)
+        sceneView.autoenablesDefaultLighting = true
+    
+        if isStartingGame {
+            presentStartGameView()
+        }
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -46,12 +92,15 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Pause the view's session
         sceneView.session.pause()
     }
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Release any cached data, images, etc that aren't in use.
-    }
 
+    func presentStartGameView() {
+        _ = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { (timer) in
+            let startVC = UIStoryboard(name: "Main", bundle: .main).instantiateViewController(withIdentifier: "StartGameVC")
+            self.present(startVC, animated: true)
+            timer.invalidate()
+        }
+    }
+    
     // MARK: - ARSCNViewDelegate
     
 /*
@@ -78,3 +127,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
     }
 }
+
+
+
