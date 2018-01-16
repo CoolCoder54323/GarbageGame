@@ -44,7 +44,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         let node = SCNNode()
         
         node.position = SCNVector3(x: 0.05, y: -0.25, z:-3)
-        node.scale = SCNVector3(x: 0.01, y: 0.01, z: 0.1)
+        node.scale = SCNVector3(x: 0.1, y: 0.1, z: 0.1)
         node.geometry = materialText.text
         
         sceneView.scene.rootNode.addChildNode(node)
@@ -64,8 +64,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         let nodetwo = SCNNode()
         
         nodetwo.position = SCNVector3(x: 0.02, y: 0.2, z: -3)
-        nodetwo.scale = SCNVector3(x: 0.01, y: 0.01, z: 0.1)
+        nodetwo.scale = SCNVector3(x: 0.1, y: 0.1, z: 0.1)
         nodetwo.geometry = text
+        
     
         sceneView.scene.rootNode.addChildNode(nodetwo)
         sceneView.autoenablesDefaultLighting = true

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		046C76602002DD3100BF9F69 /* StartGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046C765F2002DD3100BF9F69 /* StartGameViewController.swift */; };
+		046C76A2200310EE00BF9F69 /* maingameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046C76A1200310EE00BF9F69 /* maingameScene.swift */; };
 		04D961F91FF43D3D0063D7AF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D961F81FF43D3D0063D7AF /* AppDelegate.swift */; };
 		04D961FB1FF43D3D0063D7AF /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = 04D961FA1FF43D3D0063D7AF /* art.scnassets */; };
 		04D961FD1FF43D3D0063D7AF /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04D961FC1FF43D3D0063D7AF /* ViewController.swift */; };
@@ -37,6 +38,7 @@
 
 /* Begin PBXFileReference section */
 		046C765F2002DD3100BF9F69 /* StartGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartGameViewController.swift; sourceTree = "<group>"; };
+		046C76A1200310EE00BF9F69 /* maingameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = maingameScene.swift; sourceTree = "<group>"; };
 		04D961F51FF43D3D0063D7AF /* first ar project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "first ar project.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		04D961F81FF43D3D0063D7AF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		04D961FA1FF43D3D0063D7AF /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
@@ -109,6 +111,7 @@
 				04D962031FF43D3D0063D7AF /* LaunchScreen.storyboard */,
 				04D962061FF43D3D0063D7AF /* Info.plist */,
 				046C765F2002DD3100BF9F69 /* StartGameViewController.swift */,
+				046C76A1200310EE00BF9F69 /* maingameScene.swift */,
 			);
 			path = "first ar project";
 			sourceTree = "<group>";
@@ -269,6 +272,7 @@
 				04D961FD1FF43D3D0063D7AF /* ViewController.swift in Sources */,
 				04D961F91FF43D3D0063D7AF /* AppDelegate.swift in Sources */,
 				046C76602002DD3100BF9F69 /* StartGameViewController.swift in Sources */,
+				046C76A2200310EE00BF9F69 /* maingameScene.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -14,10 +14,11 @@ class StartGameViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        startButton.setTitle("Start Dang it!", for: .normal)
+        startButton.setTitle("Start!", for: .normal)
     }
     
     @IBAction func startButtonPressed(_ sender: Any) {
         dismiss(animated: true, completion: nil)
     }
 }
+
