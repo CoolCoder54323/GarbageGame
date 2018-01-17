@@ -9,55 +9,78 @@
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="HelveticaNeueLights.ttc">
+            <string>HelveticaNeue-Light</string>
+        </array>
+    </customFonts>
     <scenes>
         <!--View Controller-->
         <scene sceneID="tXr-a1-R10">
             <objects>
                 <viewController id="BV1-FR-VrT" customClass="ViewController" customModule="first_ar_project" customModuleProvider="target" sceneMemberID="viewController">
-                    <arscnView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="BrB-h1-WRS">
+                    <view key="view" contentMode="scaleToFill" id="X7f-nq-sfY">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                    </arscnView>
+                        <subviews>
+                            <arscnView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Qea-2Z-Q1b">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                            </arscnView>
+                            <view alpha="0.5" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uTo-n0-QoS">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1Yc-Hd-UX5">
+                                <rect key="frame" x="0.0" y="607" width="375" height="60"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ogY-iI-Aoc">
+                                        <rect key="frame" x="8" y="10" width="359" height="40"/>
+                                        <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="28"/>
+                                        <state key="normal" title="Button">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="startButtonPressed:" destination="BV1-FR-VrT" eventType="touchUpInside" id="fbI-Qp-N15"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" red="0.4756349325" green="0.47564673419999998" blue="0.47564041610000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="trailing" secondItem="ogY-iI-Aoc" secondAttribute="trailing" constant="8" id="1oc-aQ-IVF"/>
+                                    <constraint firstItem="ogY-iI-Aoc" firstAttribute="leading" secondItem="1Yc-Hd-UX5" secondAttribute="leading" constant="8" id="48Q-Cd-Arp"/>
+                                    <constraint firstItem="ogY-iI-Aoc" firstAttribute="top" secondItem="1Yc-Hd-UX5" secondAttribute="top" constant="10" id="Bpf-bk-HoT"/>
+                                    <constraint firstAttribute="height" constant="60" id="FEd-cK-yF0"/>
+                                    <constraint firstAttribute="bottom" secondItem="ogY-iI-Aoc" secondAttribute="bottom" constant="10" id="Jme-RS-6l1"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="Qea-2Z-Q1b" firstAttribute="bottom" secondItem="Key-Er-EtD" secondAttribute="bottom" id="4fu-sD-eTp"/>
+                            <constraint firstItem="uTo-n0-QoS" firstAttribute="top" secondItem="X7f-nq-sfY" secondAttribute="top" id="6p7-4i-efs"/>
+                            <constraint firstItem="Qea-2Z-Q1b" firstAttribute="leading" secondItem="Key-Er-EtD" secondAttribute="leading" id="KHR-Bs-U1N"/>
+                            <constraint firstItem="1Yc-Hd-UX5" firstAttribute="trailing" secondItem="Key-Er-EtD" secondAttribute="trailing" id="O5A-zV-Kiy"/>
+                            <constraint firstItem="Qea-2Z-Q1b" firstAttribute="top" secondItem="X7f-nq-sfY" secondAttribute="top" id="QLL-De-7y5"/>
+                            <constraint firstItem="Qea-2Z-Q1b" firstAttribute="trailing" secondItem="Key-Er-EtD" secondAttribute="trailing" id="U9y-aq-jT8"/>
+                            <constraint firstItem="uTo-n0-QoS" firstAttribute="trailing" secondItem="Key-Er-EtD" secondAttribute="trailing" id="bbg-5U-ZVo"/>
+                            <constraint firstItem="uTo-n0-QoS" firstAttribute="leading" secondItem="Key-Er-EtD" secondAttribute="leading" id="dyf-23-PDc"/>
+                            <constraint firstItem="uTo-n0-QoS" firstAttribute="bottom" secondItem="Key-Er-EtD" secondAttribute="bottom" id="tbe-Oa-TU4"/>
+                            <constraint firstAttribute="bottom" secondItem="1Yc-Hd-UX5" secondAttribute="bottom" id="uRZ-pG-t3U"/>
+                            <constraint firstItem="1Yc-Hd-UX5" firstAttribute="leading" secondItem="Key-Er-EtD" secondAttribute="leading" id="wQu-pT-l89"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="Key-Er-EtD"/>
+                    </view>
                     <connections>
-                        <outlet property="sceneView" destination="BrB-h1-WRS" id="5nT-qQ-ynl"/>
+                        <outlet property="blockerView" destination="uTo-n0-QoS" id="aj2-Lk-tfg"/>
+                        <outlet property="sceneView" destination="Qea-2Z-Q1b" id="2Bu-pd-q0Z"/>
+                        <outlet property="startButton" destination="ogY-iI-Aoc" id="LR1-Sg-Wya"/>
+                        <outlet property="startButtonContainer" destination="1Yc-Hd-UX5" id="Qme-OY-jhT"/>
+                        <outlet property="startContainerBottomConstraint" destination="uRZ-pG-t3U" id="kCi-34-Mwv"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="626" y="90"/>
-        </scene>
-        <!--Start Game View Controller-->
-        <scene sceneID="pSh-LD-Dti">
-            <objects>
-                <viewController storyboardIdentifier="StartGameVC" id="QxI-yF-SXE" customClass="StartGameViewController" customModule="first_ar_project" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="zwM-Nw-Vqi">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="I6x-ot-3Zy">
-                                <rect key="frame" x="16" y="318" width="343" height="30"/>
-                                <state key="normal" title="Button"/>
-                                <connections>
-                                    <action selector="startButtonPressed:" destination="QxI-yF-SXE" eventType="touchUpInside" id="q2t-pn-wRP"/>
-                                </connections>
-                            </button>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        <constraints>
-                            <constraint firstItem="evL-g0-y9Z" firstAttribute="trailing" secondItem="I6x-ot-3Zy" secondAttribute="trailing" constant="16" id="Fwe-6o-bfX"/>
-                            <constraint firstItem="I6x-ot-3Zy" firstAttribute="centerX" secondItem="zwM-Nw-Vqi" secondAttribute="centerX" id="G14-Lw-hUk"/>
-                            <constraint firstItem="I6x-ot-3Zy" firstAttribute="centerY" secondItem="zwM-Nw-Vqi" secondAttribute="centerY" id="o5F-DK-N35"/>
-                            <constraint firstItem="I6x-ot-3Zy" firstAttribute="leading" secondItem="evL-g0-y9Z" secondAttribute="leading" constant="16" id="vxU-QE-Fms"/>
-                        </constraints>
-                        <viewLayoutGuide key="safeArea" id="evL-g0-y9Z"/>
-                    </view>
-                    <connections>
-                        <outlet property="startButton" destination="I6x-ot-3Zy" id="8aa-Co-DcB"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="vnh-7l-9MQ" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1389.5999999999999" y="89.505247376311857"/>
+            <point key="canvasLocation" x="624.79999999999995" y="89.505247376311857"/>
         </scene>
     </scenes>
 </document>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "first ar project/ViewController.swift"
+            timestampString = "537852218.4582959"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "91"
+            endingLineNumber = "91"
+            landmarkName = "showStartButtonContainer(_:animated:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "first_ar_project.ViewController.showStartButtonContainer(Swift.Bool) -&gt; ()"
+                  moduleName = "first ar project"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bigman/XcodeProjects/first%20ar%20project/first%20ar%20project/ViewController.swift"
+                  timestampString = "537849429.611979"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "83"
+                  endingLineNumber = "83"
+                  offsetFromSymbolStart = "28">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; () in first_ar_project.ViewController.showStartButtonContainer(Swift.Bool) -&gt; ()"
+                  moduleName = "first ar project"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/bigman/XcodeProjects/first%20ar%20project/first%20ar%20project/ViewController.swift"
+                  timestampString = "537849429.6165839"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "83"
+                  endingLineNumber = "83"
+                  offsetFromSymbolStart = "32">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>

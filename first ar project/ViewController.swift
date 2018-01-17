@@ -26,55 +26,42 @@ class MaterialText {
 
 class ViewController: UIViewController, ARSCNViewDelegate {
 
-    @IBOutlet var sceneView: ARSCNView!//displaying a veiw of flight camerea feed in which we are going to display our 3d objects
+    @IBOutlet weak var sceneView: ARSCNView!  //displaying a view of flight camera feed in which we are going to display our 3d objects
+    @IBOutlet weak var startButton: UIButton!
+    @IBOutlet weak var blockerView: UIView!
+    @IBOutlet weak var startButtonContainer: UIView!
+    @IBOutlet weak var startContainerBottomConstraint: NSLayoutConstraint!
+
+    private var isStartingGame = true
     
-    var isStartingGame = true
-    
-   //runs when view loads
+    //runs when view loads
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        showStartButtonContainer(false, animated: false)
+        startButton.setTitle("START THE GAME", for: .normal)
         
         // Set the view's delegate
         sceneView.delegate = self
        
         // Create and pass a text and a material object into our custom class
-        let materialText = MaterialText(text: SCNText(string:"By:inVeNT", extrusionDepth:0.1),material: SCNMaterial())
-        materialText.setColor(UIColor.orange)
+        let titleText = MaterialText(text: SCNText(string:"Garbage Game", extrusionDepth:0.7), material: SCNMaterial())
+        titleText.setColor(UIColor.green) 
+
+        let nameNode = SCNNode(geometry: titleText.text)
+        nameNode.position = SCNVector3(x: -0.05, y: 0.2, z: -3)
+        nameNode.scale = SCNVector3(x: 0.05, y: 0.05, z: 0.1)
+
+        let developerText = MaterialText(text: SCNText(string:"By:inVeNT", extrusionDepth:0.7), material: SCNMaterial())
+        developerText.setColor(UIColor.orange)
         
-        let node = SCNNode()
-        
-        node.position = SCNVector3(x: 0.05, y: -0.25, z:-3)
-        node.scale = SCNVector3(x: 0.1, y: 0.1, z: 0.1)
-        node.geometry = materialText.text
-        
-        sceneView.scene.rootNode.addChildNode(node)
+        let developerNode = SCNNode(geometry: developerText.text)
+        developerNode.position = SCNVector3(x: -0.05, y: -0.25, z:-3)
+        developerNode.scale = SCNVector3(x: 0.05, y: 0.05, z: 0.1)
+
+        sceneView.scene.rootNode.addChildNode(nameNode)
+        sceneView.scene.rootNode.addChildNode(developerNode)
         sceneView.autoenablesDefaultLighting = true
-        
-        
-        let text = SCNText(string: "Garbage Game ", extrusionDepth: 1)//extrusiondepth is the thickness of the object
-        
-        
-        let materialtwo = SCNMaterial()//creates a material object
-        
-        materialtwo.diffuse.contents = UIColor.green//turns it a color
-   
-        
-        text.materials = [materialtwo]//makes the objct into your text
-    
-        let nodetwo = SCNNode()
-        
-        nodetwo.position = SCNVector3(x: 0.02, y: 0.2, z: -3)
-        nodetwo.scale = SCNVector3(x: 0.1, y: 0.1, z: 0.1)
-        nodetwo.geometry = text
-        
-    
-        sceneView.scene.rootNode.addChildNode(nodetwo)
-        sceneView.autoenablesDefaultLighting = true
-    
-        if isStartingGame {
-            presentStartGameView()
-        }
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -87,6 +74,10 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.run(configuration)
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        showStartButtonContainer(true, animated: true)
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
@@ -94,16 +85,21 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.pause()
     }
 
-    func presentStartGameView() {
-        _ = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { (timer) in
-            let startVC = UIStoryboard(name: "Main", bundle: .main).instantiateViewController(withIdentifier: "StartGameVC")
-            self.present(startVC, animated: true)
-            timer.invalidate()
-        }
+    func showStartButtonContainer(_ shouldShow: Bool, animated: Bool) {
+        let duration = animated ? 1.0 : 0.0
+        UIView.animate(withDuration: duration, animations: { [weak self] in
+            self?.startContainerBottomConstraint.constant = shouldShow ? CGFloat(0.0) : -(self?.startButtonContainer.frame.size.height ?? CGFloat(60.0))
+            self?.startButtonContainer.alpha = shouldShow ? 1.0 : 0.0
+            self?.blockerView.alpha = shouldShow ? 0.5 : 0.0
+            self?.view.layoutIfNeeded()
+        })
+    }
+    
+    @IBAction func startButtonPressed(_ sender: Any) {
+        showStartButtonContainer(false, animated: true)
     }
     
     // MARK: - ARSCNViewDelegate
-    
 /*
     // Override to create and configure nodes for anchors added to the view's session.
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
@@ -115,17 +111,14 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
-        
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
         // Inform the user that the session has been interrupted, for example, by presenting an overlay
-        
     }
     
     func sessionInterruptionEnded(_ session: ARSession) {
         // Reset tracking and/or remove existing anchors if consistent tracking is required
-        
     }
 }
 
