@@ -39,44 +39,20 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     private var garbageScene = SCNScene()
     private let titleText = MaterialText(text: SCNText(string:"Garbage Game", extrusionDepth:0.7), material: SCNMaterial())
 
-    let cigarette = SCNNode(geometry: nil)
     //runs when view loads
     override func viewDidLoad() {
         super.viewDidLoad()
    
+        // Set the view's delegate
+        sceneView.delegate = self
+        
         // Show statistics such as fps and timing information
         sceneView.showsStatistics = true
+        
+      
+        sceneView.showsStatistics = true
         sceneView.debugOptions = ARSCNDebugOptions.showFeaturePoints
-        // sceneView.debugOptions =
-        //  [ARSCNDebugOptions.showFeaturePoints, ARSCNDebugOptions.showWorldOrigin]
-        
-        func createShip(){
-            let ship = ARAnchor(transform: art.scnassets/ship.scn)
-            let geometrySphere = SCNNode(geometry: ship)
-            
-            geometrySphere.position = SCNVector3(0, 0, -1.5)
-            
-            ship.firstMaterial?.diffuse.contents = UIImage(named: "art.scnassets/ship.scn")
-            
-            sceneView.scene.rootNode.addChildNode(geometrySphere)
-        }
-       
-        var nodeModel:SCNNode!
-        let nodeName = "ship"
-        
-        // Create a new scene
-        let scene = SCNScene()
-        
-        // Set the scene to the view
-        sceneView.scene = scene
-        
-        let modelScene = SCNScene(named : "ship.scn")!
-        
-        
-        nodeModel =  modelScene.rootNode.childNode(
-            withName: nodeName, recursively: true)
-        
-        sceneView.scene.rootNode.addChildNode(cigarette)
+    
         titleText.setColor(UIColor.green)
         
         
@@ -142,8 +118,19 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.scene.rootNode.childNodes.forEach { (child) in
             child.removeFromParentNode()
         }
-        showStartButtonContainer(false, animated: true)
-        
+        // Chip sticks
+        if let chipSticks = SCNScene(named: "art.scnassets/chips-sticks-open.dae") {
+            sceneView.scene = chipSticks
+            showStartButtonContainer(false, animated: true)
+            adjustNodes()
+        }
+    }
+    
+    func adjustNodes() {
+        sceneView.scene.rootNode.childNodes.forEach {
+            print("node: ", $0)
+//            $0.scale = SCNVector3(0.1, 0.1, 0.1)
+        }
     }
     
     // MARK: - ARSCNViewDelegate
