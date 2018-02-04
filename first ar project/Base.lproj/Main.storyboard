@@ -26,10 +26,6 @@
                             <arscnView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Qea-2Z-Q1b">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </arscnView>
-                            <view alpha="0.5" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uTo-n0-QoS">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1Yc-Hd-UX5">
                                 <rect key="frame" x="0.0" y="607" width="375" height="60"/>
                                 <subviews>
@@ -53,6 +49,10 @@
                                     <constraint firstAttribute="bottom" secondItem="ogY-iI-Aoc" secondAttribute="bottom" constant="10" id="Jme-RS-6l1"/>
                                 </constraints>
                             </view>
+                            <view alpha="0.5" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uTo-n0-QoS">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="607"/>
+                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
@@ -64,7 +64,7 @@
                             <constraint firstItem="Qea-2Z-Q1b" firstAttribute="trailing" secondItem="Key-Er-EtD" secondAttribute="trailing" id="U9y-aq-jT8"/>
                             <constraint firstItem="uTo-n0-QoS" firstAttribute="trailing" secondItem="Key-Er-EtD" secondAttribute="trailing" id="bbg-5U-ZVo"/>
                             <constraint firstItem="uTo-n0-QoS" firstAttribute="leading" secondItem="Key-Er-EtD" secondAttribute="leading" id="dyf-23-PDc"/>
-                            <constraint firstItem="uTo-n0-QoS" firstAttribute="bottom" secondItem="Key-Er-EtD" secondAttribute="bottom" id="tbe-Oa-TU4"/>
+                            <constraint firstItem="1Yc-Hd-UX5" firstAttribute="top" secondItem="uTo-n0-QoS" secondAttribute="bottom" id="fo0-nZ-pea"/>
                             <constraint firstAttribute="bottom" secondItem="1Yc-Hd-UX5" secondAttribute="bottom" id="uRZ-pG-t3U"/>
                             <constraint firstItem="1Yc-Hd-UX5" firstAttribute="leading" secondItem="Key-Er-EtD" secondAttribute="leading" id="wQu-pT-l89"/>
                         </constraints>
