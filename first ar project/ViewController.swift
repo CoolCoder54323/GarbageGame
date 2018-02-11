@@ -9,6 +9,8 @@
 import UIKit
 import SceneKit//3d objects
 import ARKit
+import QuartzCore
+
 
 
 struct Model {
@@ -56,11 +58,27 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     private let titleText = MaterialText(text: SCNText(string:"Garbage Game", extrusionDepth:0.7), material: SCNMaterial(), color: UIColor.green)
     private let developerText = MaterialText(text: SCNText(string:"By:inVeNT", extrusionDepth:0.7), material: SCNMaterial(), color: UIColor.orange)
 
-    let cigarette = SCNNode(geometry: nil)
 
     //runs when view loads
     override func viewDidLoad() {
         super.viewDidLoad()
+       
+        func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+            // This visualization covers only detected planes.
+            guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+            
+            // Create a SceneKit plane to visualize the node using its position and extent.
+            let plane = SCNPlane(width: CGFloat(planeAnchor.extent.x), height: CGFloat(planeAnchor.extent.z))
+            let planeNode = SCNNode(geometry: plane)
+            planeNode.position = SCNVector3Make(planeAnchor.center.x, 0, planeAnchor.center.z)
+            
+            // SCNPlanes are vertically oriented in their local coordinate space.
+            // Rotate it to match the horizontal orientation of the ARPlaneAnchor.
+            planeNode.transform = SCNMatrix4MakeRotation(-Float.pi / 2, 1, 0, 0)
+            
+            // ARKit owns the node corresponding to the anchor, so make the plane a child node.
+            node.addChildNode(planeNode)
+        }
 
         // Create a new scene and set the scene to the view,
         // set the scene view's delegate, show statistics, and debug info
@@ -119,7 +137,24 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         load3DGarbageModels(garbageModels)
         showStartButtonContainer(false, animated: true)
     }
-
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let touch = touches.first!
+        if let hit = sceneView.hitTest(touch.location(in: sceneView), options: nil).first {
+            selectedNode = hit.node
+            zDepth = sceneView.projectPoint(selectedNode.position).z
+        }
+    }
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard selectedNode != nil else { return }
+        let touch = touches.first!
+        let touchPoint = touch.location(in: sceneView)
+        selectedNode.position = sceneView.unprojectPoint(
+            SCNVector3(x: Float(touchPoint.x),
+                       y: Float(touchPoint.y),
+                       z: zDepth))
+    }
+    
     // This function is a way to load all the models we add to the project
     func load3DGarbageModels(_ models: [Model]) {
         var newXPosition = 0.0
