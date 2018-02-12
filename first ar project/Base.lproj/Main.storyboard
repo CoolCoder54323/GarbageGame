@@ -45,6 +45,7 @@
                                 </constraints>
                                 <connections>
                                     <outletCollection property="gestureRecognizers" destination="dIC-gw-uUK" appends="YES" id="A4i-Oi-xOY"/>
+                                    <outletCollection property="gestureRecognizers" destination="y80-hu-fEI" appends="YES" id="DqF-2P-LBr"/>
                                 </connections>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1Yc-Hd-UX5">
@@ -112,6 +113,11 @@
                         <action selector="panGestureTouched:" destination="BV1-FR-VrT" id="zHp-CT-kgH"/>
                     </connections>
                 </panGestureRecognizer>
+                <tapGestureRecognizer id="y80-hu-fEI">
+                    <connections>
+                        <action selector="viewTapped:" destination="BV1-FR-VrT" id="N16-0g-miw"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="624.79999999999995" y="89.505247376311857"/>
         </scene>

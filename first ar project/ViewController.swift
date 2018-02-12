@@ -65,7 +65,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     @IBOutlet weak var startContainerBottomConstraint: NSLayoutConstraint!
 
     // We can just add the model file names to this array using the Model class and the load3DGarbageModels() function will add them to the scene
-    private var garbageModels = [Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick")]
+    private var garbageModels = [Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
+                                 Model(filename: "art.scnassets/bottle.dae")]
     private var isStartingGame = true
     private var garbageScene = SCNScene()
     private let titleText = MaterialText(text: SCNText(string:"Garbage Game", extrusionDepth:0.7), material: SCNMaterial(), color: UIColor.green)
@@ -306,6 +307,18 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 //        if touchLocation.location(matches: firstNode.position, within: CGFloat(20.0)) {
 //            print("HIT!")
 //        }
+    }
+
+    @IBAction func viewTapped(_ sender: UITapGestureRecognizer) {
+        print("Attempting to remove the first node")
+        if let firstModel = garbageModels.first, let firstAnchor = firstModel.anchor, let firstNode = firstModel.node {
+            sceneView.session.remove(anchor: firstAnchor)
+            sceneView.scene.rootNode.childNodes.forEach { (node) in
+                if node == firstNode {
+                    firstNode.removeFromParentNode()
+                }
+            }
+        }
     }
 
 }
