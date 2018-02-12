@@ -68,6 +68,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     @IBOutlet weak var startContainerBottomConstraint: NSLayoutConstraint!
 
     // We can just add the model file names to this array using the Model class and the load3DGarbageModels() function will add them to the scene
+    var modelFound: Model?
     private var garbageModels = [Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
                                  Model(filename: "art.scnassets/bottle.dae", filter: "Spot", desiredScale: SCNVector3(0.02,0.02,0.02))]
     private var isStartingGame = true
@@ -202,14 +203,17 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
                     guard let rootNode = garbageModel.node else { return }
                     rootNode.childNodes.forEach({ (node) in
                         if hitResult.node.name == node.name {
-                            self?.processNodeFound(hitResult.node)
+                            modelFound = garbageModel
+                            hitLabel.text = "Throw AWAY the TRASH"
                         }
                     })
                 }
             }
 
         } else {
-            hitLabel.text = ""
+            hitLabel.text = "find it"
+            modelFound = nil
+            
         }
     }
 
@@ -217,17 +221,17 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
-        showError(title: "Sorry", message: "The AR session wasn't able to start. Please stop the app and try again.")
+        showError(title: "ERROR", message: "Please stop the app and try again.")
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
         // Inform the user that the session has been interrupted, for example, by presenting an overlay
-        showError(title: "Sorry", message: "The AR session was interrupted. Please stop the app and try again.")
+        showError(title: "ERROR", message: "Please stop the app and try again.")
     }
     
     func sessionInterruptionEnded(_ session: ARSession) {
         // Reset tracking and/or remove existing anchors if consistent tracking is required
-        showError(title: "Sorry", message: "The AR session ended. Please stop the app and try again.")
+        showError(title: "ERROR", message: " Please stop the app and try again.")
     }
 
     // MARK: - Helper Functions
@@ -302,10 +306,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     }
 
     @IBAction func viewTapped(_ sender: UITapGestureRecognizer) {
-        guard let firstModel = garbageModels.first, let firstAnchor = firstModel.anchor, let firstNode = firstModel.node else { return }
-        sceneView.session.remove(anchor: firstAnchor)
-        firstNode.removeFromParentNode()
-        garbageModels.remove(at: 0)
+        guard let model = modelFound, let anchor = model.anchor, let node = model.node else { return }
+        sceneView.session.remove(anchor: anchor)
+        
+        node.removeFromParentNode()
+
     }
 
 }
