@@ -10,6 +10,9 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <customFonts key="customFonts">
+        <array key="HelveticaNeue.ttc">
+            <string>HelveticaNeue-Bold</string>
+        </array>
         <array key="HelveticaNeueLights.ttc">
             <string>HelveticaNeue-Light</string>
         </array>
@@ -26,6 +29,38 @@
                             <arscnView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Qea-2Z-Q1b">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </arscnView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lZs-83-QrB" userLabel="Interaction View">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="T4o-f5-fSa">
+                                        <rect key="frame" x="8" y="20" width="359" height="0.0"/>
+                                        <fontDescription key="fontDescription" name="HelveticaNeue-Bold" family="Helvetica Neue" pointSize="30"/>
+                                        <color key="textColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <view alpha="0.40000000000000002" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NaA-Qa-ZW7">
+                                        <rect key="frame" x="162" y="308" width="50" height="50"/>
+                                        <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="50" id="YWM-L0-COu"/>
+                                            <constraint firstAttribute="height" constant="50" id="hCe-8N-2We"/>
+                                        </constraints>
+                                    </view>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <gestureRecognizers/>
+                                <constraints>
+                                    <constraint firstItem="T4o-f5-fSa" firstAttribute="leading" secondItem="lZs-83-QrB" secondAttribute="leading" constant="8" id="4z9-CK-d9G"/>
+                                    <constraint firstItem="NaA-Qa-ZW7" firstAttribute="centerY" secondItem="lZs-83-QrB" secondAttribute="centerY" id="Q6S-4z-qTw"/>
+                                    <constraint firstAttribute="trailing" secondItem="T4o-f5-fSa" secondAttribute="trailing" constant="8" id="Qy5-5Q-0FL"/>
+                                    <constraint firstItem="T4o-f5-fSa" firstAttribute="top" secondItem="lZs-83-QrB" secondAttribute="top" constant="20" id="rTA-px-10T"/>
+                                    <constraint firstItem="NaA-Qa-ZW7" firstAttribute="centerX" secondItem="lZs-83-QrB" secondAttribute="centerX" id="v5g-Ub-Vg4"/>
+                                </constraints>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="dIC-gw-uUK" appends="YES" id="A4i-Oi-xOY"/>
+                                    <outletCollection property="gestureRecognizers" destination="y80-hu-fEI" appends="YES" id="DqF-2P-LBr"/>
+                                </connections>
+                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1Yc-Hd-UX5">
                                 <rect key="frame" x="0.0" y="607" width="375" height="60"/>
                                 <subviews>
@@ -57,7 +92,9 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="Qea-2Z-Q1b" firstAttribute="bottom" secondItem="Key-Er-EtD" secondAttribute="bottom" id="4fu-sD-eTp"/>
+                            <constraint firstItem="lZs-83-QrB" firstAttribute="top" secondItem="X7f-nq-sfY" secondAttribute="top" id="678-Pg-G6b"/>
                             <constraint firstItem="uTo-n0-QoS" firstAttribute="top" secondItem="X7f-nq-sfY" secondAttribute="top" id="6p7-4i-efs"/>
+                            <constraint firstItem="lZs-83-QrB" firstAttribute="trailing" secondItem="Key-Er-EtD" secondAttribute="trailing" id="I1m-ky-Mn1"/>
                             <constraint firstItem="Qea-2Z-Q1b" firstAttribute="leading" secondItem="Key-Er-EtD" secondAttribute="leading" id="KHR-Bs-U1N"/>
                             <constraint firstItem="1Yc-Hd-UX5" firstAttribute="trailing" secondItem="Key-Er-EtD" secondAttribute="trailing" id="O5A-zV-Kiy"/>
                             <constraint firstItem="Qea-2Z-Q1b" firstAttribute="top" secondItem="X7f-nq-sfY" secondAttribute="top" id="QLL-De-7y5"/>
@@ -65,13 +102,19 @@
                             <constraint firstItem="uTo-n0-QoS" firstAttribute="trailing" secondItem="Key-Er-EtD" secondAttribute="trailing" id="bbg-5U-ZVo"/>
                             <constraint firstItem="uTo-n0-QoS" firstAttribute="leading" secondItem="Key-Er-EtD" secondAttribute="leading" id="dyf-23-PDc"/>
                             <constraint firstItem="1Yc-Hd-UX5" firstAttribute="top" secondItem="uTo-n0-QoS" secondAttribute="bottom" id="fo0-nZ-pea"/>
+                            <constraint firstItem="lZs-83-QrB" firstAttribute="leading" secondItem="Key-Er-EtD" secondAttribute="leading" id="oqk-cz-U8i"/>
                             <constraint firstAttribute="bottom" secondItem="1Yc-Hd-UX5" secondAttribute="bottom" id="uRZ-pG-t3U"/>
                             <constraint firstItem="1Yc-Hd-UX5" firstAttribute="leading" secondItem="Key-Er-EtD" secondAttribute="leading" id="wQu-pT-l89"/>
+                            <constraint firstItem="lZs-83-QrB" firstAttribute="bottom" secondItem="Key-Er-EtD" secondAttribute="bottom" id="yvV-El-d1B"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Key-Er-EtD"/>
                     </view>
                     <connections>
                         <outlet property="blockerView" destination="uTo-n0-QoS" id="aj2-Lk-tfg"/>
+                        <outlet property="centerView" destination="NaA-Qa-ZW7" id="4bZ-NR-AjY"/>
+                        <outlet property="hitLabel" destination="T4o-f5-fSa" id="h1j-oB-Wv7"/>
+                        <outlet property="interactionView" destination="lZs-83-QrB" id="RBD-0R-u1X"/>
+                        <outlet property="panGestureRecognizer" destination="dIC-gw-uUK" id="w4K-uW-g41"/>
                         <outlet property="sceneView" destination="Qea-2Z-Q1b" id="2Bu-pd-q0Z"/>
                         <outlet property="startButton" destination="ogY-iI-Aoc" id="LR1-Sg-Wya"/>
                         <outlet property="startButtonContainer" destination="1Yc-Hd-UX5" id="Qme-OY-jhT"/>
@@ -79,6 +122,16 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>
+                <panGestureRecognizer minimumNumberOfTouches="1" id="dIC-gw-uUK">
+                    <connections>
+                        <action selector="panGestureTouched:" destination="BV1-FR-VrT" id="zHp-CT-kgH"/>
+                    </connections>
+                </panGestureRecognizer>
+                <tapGestureRecognizer id="y80-hu-fEI">
+                    <connections>
+                        <action selector="viewTapped:" destination="BV1-FR-VrT" id="N16-0g-miw"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="624.79999999999995" y="89.505247376311857"/>
         </scene>

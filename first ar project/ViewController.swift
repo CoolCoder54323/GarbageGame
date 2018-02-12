@@ -13,9 +13,23 @@ import QuartzCore
 
 
 
-struct Model {
+struct Model: Equatable {
     var filename: String
+    var id: UInt32
     var filter: String?
+    var anchor: ARAnchor?
+    var node: SCNNode?
+    var desiredScale: SCNVector3
+
+    init(filename: String, filter: String? = nil, desiredScale: SCNVector3 = SCNVector3(0.8,0.8,0.8)) {
+        self.filename = filename
+        self.filter = filter
+        self.id = arc4random()
+        self.desiredScale = desiredScale
+    }
+    static func ==(lhs: Model, rhs: Model) -> Bool {
+        return lhs.filename == rhs.filename && lhs.id == rhs.id
+    }
 }
 
 class MaterialText {
@@ -43,8 +57,12 @@ class MaterialText {
     }
 }
 
-class ViewController: UIViewController, ARSCNViewDelegate {
+class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
+    @IBOutlet weak var interactionView: UIView!
+    @IBOutlet weak var hitLabel: UILabel!
+    @IBOutlet weak var centerView: UIView!
+    @IBOutlet weak var panGestureRecognizer: UIPanGestureRecognizer!
     @IBOutlet weak var sceneView: ARSCNView!  //displaying a view of flight camera feed in which we are going to display our 3d objects
     @IBOutlet weak var startButton: UIButton!
     @IBOutlet weak var blockerView: UIView!
@@ -52,11 +70,14 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     @IBOutlet weak var startContainerBottomConstraint: NSLayoutConstraint!
 
     // We can just add the model file names to this array using the Model class and the load3DGarbageModels() function will add them to the scene
-    private var garbageModels = [Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick")]
+    var modelFound: Model?
+    private var garbageModels = [Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
+                                 Model(filename: "art.scnassets/bottle.dae", filter: "Spot", desiredScale: SCNVector3(0.02,0.02,0.02))]
     private var isStartingGame = true
     private var garbageScene = SCNScene()
     private let titleText = MaterialText(text: SCNText(string:"Garbage Game", extrusionDepth:0.7), material: SCNMaterial(), color: UIColor.green)
     private let developerText = MaterialText(text: SCNText(string:"By:inVeNT", extrusionDepth:0.7), material: SCNMaterial(), color: UIColor.orange)
+
 
 
     //runs when view loads
@@ -80,10 +101,12 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             node.addChildNode(planeNode)
         }
 
+        centerPoint = CGPoint(x: UIScreen.main.bounds.size.width/CGFloat(2.0), y: UIScreen.main.bounds.size.height/CGFloat(2.0))
+
         // Create a new scene and set the scene to the view,
         // set the scene view's delegate, show statistics, and debug info
-        sceneView.scene = SCNScene()
         sceneView.delegate = self
+        sceneView.session.delegate = self
         sceneView.showsStatistics = true
         sceneView.debugOptions = ARSCNDebugOptions.showFeaturePoints
         // sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints, ARSCNDebugOptions.showWorldOrigin]
@@ -101,7 +124,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         showStartButtonContainer(false, animated: false)
         startButton.setTitle("START THE GAME", for: .normal)
 
-        sceneView.scene = garbageScene
         sceneView.scene.rootNode.addChildNode(titleText.node(scale: SCNVector3(x: 0.01, y: 0.01, z: 0.05), at: SCNVector3(x: -0.05, y: 0.2, z: -3)))
         sceneView.scene.rootNode.addChildNode(developerText.node(scale: SCNVector3(x: 0.01, y: 0.01, z: 0.05), at: SCNVector3(x: -0.05, y: 0.0, z:-3)))
         sceneView.autoenablesDefaultLighting = true
@@ -157,32 +179,44 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     // This function is a way to load all the models we add to the project
     func load3DGarbageModels(_ models: [Model]) {
-        var newXPosition = 0.0
-        models.forEach { (model) in
-            guard let modelScene = SCNScene(named: model.filename) else { return }
+        var newXPosition: Float = Float(0.0)
+        var newZPosition: Float = Float(1.0)
+
+        let copyOfModels = models
+        copyOfModels.forEach { [weak self] (model) in
+            guard let sself = self, let currentFrame = sceneView.session.currentFrame, let modelScene = SCNScene(named: model.filename) else { return }
             // The next line is a VERY basic way to position the objects sequentially along the x axis but a fixed y coordinate
             // and should be improved later to logically determine the horizontal surfaces and more intelligently
             // position the nodes representing the models
-            let positionVector = SCNVector3(newXPosition,-1.0,-1.0)
-            if let newNode = scaledNode(from: modelScene, at: positionVector, scale: SCNVector3(0.8, 0.8, 0.8), filteredName: model.filter ) {
+            var translation = matrix_identity_float4x4
+            translation.columns.3.x = newXPosition
+            translation.columns.3.z = -newZPosition
+            let newTransform = currentFrame.camera.transform * translation
+            if let newNode = scaledNode(from: modelScene, scale: model.desiredScale, filteredName: model.filter), let index = sself.garbageModels.index(of: model) {
+                garbageModels[index].node = newNode
+                let newAnchor = ARAnchor.init(transform: newTransform)
+                garbageModels[index].anchor = newAnchor
+                sself.sceneView.session.add(anchor: newAnchor)
                 sceneView.scene.rootNode.addChildNode(newNode)
             }
-            newXPosition += 1.0
+            newXPosition += Float(1.0)
+            newZPosition += Float(0.2)
         }
     }
 
     // This allows us to extract and filter out the parts of the model, scale them, and create an SCNNode from them to put in the scene
-    func scaledNode(from scene: SCNScene, at position: SCNVector3, scale: SCNVector3 = SCNVector3(1.0, 1.0, 1.0), filteredName: String? = nil) -> SCNNode? {
+    func scaledNode(from scene: SCNScene, scale: SCNVector3 = SCNVector3(1.0, 1.0, 1.0), filteredName: String? = nil) -> SCNNode? {
         guard !scene.rootNode.childNodes.isEmpty else { return nil }
 
         let node = SCNNode()
         node.scale = scale
-        node.position = position
 
         scene.rootNode.childNodes
             .filter {
                 guard let name = $0.name else { return false }
                 guard let filteredName = filteredName else { return true }
+                let acceptanceString = !name.contains(filteredName) ? "accepting" : "rejecting"
+                print(acceptanceString, " node: ",$0)
                 return !name.contains(filteredName)
             }
             .forEach {
@@ -192,22 +226,47 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             }
         return node
     }
-    
+
+
+    // MARK: - ARSessionDelegate functions
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        // Find out if there are any nodes 3D space that line up with the center of the scene view using the 2D center point
+        let hitResults = sceneView.hitTest(centerView.center, options: nil)
+        if !hitResults.isEmpty {
+            hitResults.forEach { [weak self] (hitResult) in
+                self?.garbageModels.forEach { (garbageModel) in
+                    guard let rootNode = garbageModel.node else { return }
+                    rootNode.childNodes.forEach({ (node) in
+                        if hitResult.node.name == node.name {
+                            modelFound = garbageModel
+                            hitLabel.text = "Throw AWAY the TRASH"
+                        }
+                    })
+                }
+            }
+
+        } else {
+            hitLabel.text = "find it"
+            modelFound = nil
+            
+        }
+    }
+
     // MARK: - ARSCNViewDelegate functions
 
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
-        showError(title: "Sorry", message: "The AR session wasn't able to start. Please stop the app and try again.")
+        showError(title: "ERROR", message: "Please stop the app and try again.")
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
         // Inform the user that the session has been interrupted, for example, by presenting an overlay
-        showError(title: "Sorry", message: "The AR session was interrupted. Please stop the app and try again.")
+        showError(title: "ERROR", message: "Please stop the app and try again.")
     }
     
     func sessionInterruptionEnded(_ session: ARSession) {
         // Reset tracking and/or remove existing anchors if consistent tracking is required
-        showError(title: "Sorry", message: "The AR session ended. Please stop the app and try again.")
+        showError(title: "ERROR", message: " Please stop the app and try again.")
     }
 
     // MARK: - Helper Functions
@@ -231,21 +290,37 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         })
     }
 
+    func processNodeFound(_ node: SCNNode) {
+        hitLabel.text = "TRASH SPOTTED!"
+    }
+
+    // This version of the 'nodeFor' ARSCNViewDelegate function works with the new approach of adding
+    // anchors corresponding to the garbage model objects we add to our app
+    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
+        var nodeFound: SCNNode?
+
+        garbageModels.forEach { (garbageModel) in
+            if garbageModel.anchor == anchor { nodeFound = garbageModel.node }
+        }
+        return nodeFound
+    }
+
+
     // MARK: - Functions we're not using now
 
     // This next ARSCNViewDelegate function that for now works only when the createShip() function is called
     // -- when the anchor is added to the session, this method is called to return a node
     // right now we're not using it
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        let boxGeometry = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.0)
-        boxGeometry.firstMaterial?.diffuse.contents = UIImage(named: "art.scnassets/ship.scn")
-        let boxNode = SCNNode(geometry: boxGeometry)
-        boxNode.position = SCNVector3(0, 0, -1.5)
-        return boxNode
-    }
+//    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
+//        let boxGeometry = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.0)
+//        boxGeometry.firstMaterial?.diffuse.contents = UIImage(named: "art.scnassets/ship.scn")
+//        let boxNode = SCNNode(geometry: boxGeometry)
+//        boxNode.position = SCNVector3(0, 0, -1.5)
+//        return boxNode
+//    }
 
 
-    // Our test helper function that we're not using now
+    // Our test functions that we're not using now
     func createShip(){
         guard let cameraTransform = sceneView.session.currentFrame?.camera.transform else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: { [weak self] in
@@ -260,8 +335,19 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.add(anchor: ship)
     }
 
+    @IBAction func panGestureTouched(_ sender: UIPanGestureRecognizer) {
+        let touchLocation = sender.location(in: interactionView)
+        print("pan gesture recognizer action method called! -- ", touchLocation)
+    }
+
+    @IBAction func viewTapped(_ sender: UITapGestureRecognizer) {
+        guard let model = modelFound, let anchor = model.anchor, let node = model.node else { return }
+        sceneView.session.remove(anchor: anchor)
+        
+        node.removeFromParentNode()
+
+    }
 
 }
-
 
 
