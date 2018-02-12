@@ -17,11 +17,13 @@ struct Model: Equatable {
     var filter: String?
     var anchor: ARAnchor?
     var node: SCNNode?
+    var desiredScale: SCNVector3
 
-    init(filename: String, filter: String? = nil) {
+    init(filename: String, filter: String? = nil, desiredScale: SCNVector3 = SCNVector3(0.8,0.8,0.8)) {
         self.filename = filename
         self.filter = filter
         self.id = arc4random()
+        self.desiredScale = desiredScale
     }
     static func ==(lhs: Model, rhs: Model) -> Bool {
         return lhs.filename == rhs.filename && lhs.id == rhs.id
@@ -57,6 +59,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
     @IBOutlet weak var interactionView: UIView!
     @IBOutlet weak var hitLabel: UILabel!
+    @IBOutlet weak var centerView: UIView!
     @IBOutlet weak var panGestureRecognizer: UIPanGestureRecognizer!
     @IBOutlet weak var sceneView: ARSCNView!  //displaying a view of flight camera feed in which we are going to display our 3d objects
     @IBOutlet weak var startButton: UIButton!
@@ -66,7 +69,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
     // We can just add the model file names to this array using the Model class and the load3DGarbageModels() function will add them to the scene
     private var garbageModels = [Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
-                                 Model(filename: "art.scnassets/bottle.dae")]
+                                 Model(filename: "art.scnassets/bottle.dae", filter: "Spot", desiredScale: SCNVector3(0.02,0.02,0.02))]
     private var isStartingGame = true
     private var garbageScene = SCNScene()
     private let titleText = MaterialText(text: SCNText(string:"Garbage Game", extrusionDepth:0.7), material: SCNMaterial(), color: UIColor.green)
@@ -149,12 +152,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             // The next line is a VERY basic way to position the objects sequentially along the x axis but a fixed y coordinate
             // and should be improved later to logically determine the horizontal surfaces and more intelligently
             // position the nodes representing the models
-            let positionVector = SCNVector3(newXPosition,-1.0,-1.0)
             var translation = matrix_identity_float4x4
             translation.columns.3.x = newXPosition
             translation.columns.3.z = -newZPosition
             let newTransform = currentFrame.camera.transform * translation
-            if let newNode = scaledNode(from: modelScene, at: positionVector, scale: SCNVector3(0.8, 0.8, 0.8), filteredName: model.filter), let index = sself.garbageModels.index(of: model) {
+            if let newNode = scaledNode(from: modelScene, scale: model.desiredScale, filteredName: model.filter), let index = sself.garbageModels.index(of: model) {
                 garbageModels[index].node = newNode
                 let newAnchor = ARAnchor.init(transform: newTransform)
                 garbageModels[index].anchor = newAnchor
@@ -167,12 +169,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     }
 
     // This allows us to extract and filter out the parts of the model, scale them, and create an SCNNode from them to put in the scene
-    func scaledNode(from scene: SCNScene, at position: SCNVector3, scale: SCNVector3 = SCNVector3(1.0, 1.0, 1.0), filteredName: String? = nil) -> SCNNode? {
+    func scaledNode(from scene: SCNScene, scale: SCNVector3 = SCNVector3(1.0, 1.0, 1.0), filteredName: String? = nil) -> SCNNode? {
         guard !scene.rootNode.childNodes.isEmpty else { return nil }
 
         let node = SCNNode()
         node.scale = scale
-//        node.position = position
 
         scene.rootNode.childNodes
             .filter {
@@ -194,27 +195,22 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     // MARK: - ARSessionDelegate functions
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         // Find out if there are any nodes 3D space that line up with the center of the scene view using the 2D center point
-        let hitResults = sceneView.hitTest(centerPoint, types: .featurePoint)
+        let hitResults = sceneView.hitTest(centerView.center, options: nil)
         if !hitResults.isEmpty {
             hitResults.forEach { [weak self] (hitResult) in
                 self?.garbageModels.forEach { (garbageModel) in
-                    if let hitAnchor = hitResult.anchor, hitAnchor == garbageModel.anchor {
-                        self?.processAnchorFound(hitAnchor)
-                    }
+                    guard let rootNode = garbageModel.node else { return }
+                    rootNode.childNodes.forEach({ (node) in
+                        if hitResult.node.name == node.name {
+                            self?.processNodeFound(hitResult.node)
+                        }
+                    })
                 }
             }
 
         } else {
             hitLabel.text = ""
         }
-
-//        sceneView.scene.rootNode.childNodes(passingTest: { (node, _) -> Bool in
-//            let nodePostion = node.presentation.worldPosition
-//            let point = sceneView.projectPoint(nodePostion)
-//            return point
-//        }).forEach { [weak self] (node) in
-//
-//        }
     }
 
     // MARK: - ARSCNViewDelegate functions
@@ -255,7 +251,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         })
     }
 
-    func processAnchorFound(_ anchor: ARAnchor) {
+    func processNodeFound(_ node: SCNNode) {
         hitLabel.text = "TRASH SPOTTED!"
     }
 
@@ -303,39 +299,15 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     @IBAction func panGestureTouched(_ sender: UIPanGestureRecognizer) {
         let touchLocation = sender.location(in: interactionView)
         print("pan gesture recognizer action method called! -- ", touchLocation)
-//        guard let firstNode = trashNodes.first else { return }
-//        if touchLocation.location(matches: firstNode.position, within: CGFloat(20.0)) {
-//            print("HIT!")
-//        }
     }
 
     @IBAction func viewTapped(_ sender: UITapGestureRecognizer) {
-        print("Attempting to remove the first node")
-        if let firstModel = garbageModels.first, let firstAnchor = firstModel.anchor, let firstNode = firstModel.node {
-            sceneView.session.remove(anchor: firstAnchor)
-            sceneView.scene.rootNode.childNodes.forEach { (node) in
-                if node == firstNode {
-                    firstNode.removeFromParentNode()
-                }
-            }
-        }
+        guard let firstModel = garbageModels.first, let firstAnchor = firstModel.anchor, let firstNode = firstModel.node else { return }
+        sceneView.session.remove(anchor: firstAnchor)
+        firstNode.removeFromParentNode()
+        garbageModels.remove(at: 0)
     }
 
 }
-
-extension CGPoint {
-    func location(matches vectorPosition: SCNVector3, within distance: CGFloat) -> Bool {
-        let objectPosition = CGPoint(x: CGFloat(vectorPosition.x), y: CGFloat(vectorPosition.y))
-        print("touch position = (", x,",",y,") -- ","object position = (", objectPosition.x, ",",objectPosition.y,")")
-        if (x <= objectPosition.x + distance && x >= objectPosition.x - distance && y <= objectPosition.y + distance && y >= objectPosition.y - distance) {
-            print("MATCH")
-            return true
-        } else {
-            print("NO MATCH")
-            return false
-        }
-    }
-}
-
 
 
