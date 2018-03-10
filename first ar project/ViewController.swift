@@ -11,8 +11,7 @@ import SceneKit//3d objects
 import ARKit
 import QuartzCore
 
-
-
+// name of object, object id, filter for unessasary nodes, ARAnchor, The node, and scale of the object
 struct Model: Equatable {
     var filename: String
     var id: UInt32
@@ -72,18 +71,29 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     // We can just add the model file names to this array using the Model class and the load3DGarbageModels() function will add them to the scene
     var modelFound: Model?
     private var garbageModels = [Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
-                                 Model(filename: "art.scnassets/bottle.dae", filter: "Spot", desiredScale: SCNVector3(0.02,0.02,0.02))]
+                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
+                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
+                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick")
+    ]
+    
+    var timer = Timer()
+    let delay = 0.5
     private var isStartingGame = true
     private var garbageScene = SCNScene()
-    private let titleText = MaterialText(text: SCNText(string:"Garbage Game", extrusionDepth:0.7), material: SCNMaterial(), color: UIColor.green)
-    private let developerText = MaterialText(text: SCNText(string:"By:inVeNT", extrusionDepth:0.7), material: SCNMaterial(), color: UIColor.orange)
+    private let titleText = MaterialText(text: SCNText(string:"Garbage cleanup", extrusionDepth:1), material: SCNMaterial(), color: UIColor.green)
+    private let developerText = MaterialText(text: SCNText(string:"By:inVeNT", extrusionDepth:1), material: SCNMaterial(), color: UIColor.orange)
 
 
 
     //runs when view loads
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let configuration = ARWorldTrackingConfiguration()
+        configuration.planeDetection = .horizontal
        
+        sceneView.session.run(configuration)
+        
         func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
             // This visualization covers only detected planes.
             guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
@@ -101,18 +111,14 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             node.addChildNode(planeNode)
         }
 
-        centerPoint = CGPoint(x: UIScreen.main.bounds.size.width/CGFloat(2.0), y: UIScreen.main.bounds.size.height/CGFloat(2.0))
-
         // Create a new scene and set the scene to the view,
         // set the scene view's delegate, show statistics, and debug info
         sceneView.delegate = self
         sceneView.session.delegate = self
         sceneView.showsStatistics = true
-        sceneView.debugOptions = ARSCNDebugOptions.showFeaturePoints
-        // sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints, ARSCNDebugOptions.showWorldOrigin]
 
         // We were trying to add the ship to the scene directly here
-        // but found out that we have to use this method OR the method of adding an anchor
+        // but fround out that we have to use this method OR the method of adding an anchor
         // to the sceneView.session and then return the corresponding node
         // in the "renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor)" function below
 //        let nodeModel:SCNNode!
@@ -124,8 +130,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         showStartButtonContainer(false, animated: false)
         startButton.setTitle("START THE GAME", for: .normal)
 
-        sceneView.scene.rootNode.addChildNode(titleText.node(scale: SCNVector3(x: 0.01, y: 0.01, z: 0.05), at: SCNVector3(x: -0.05, y: 0.2, z: -3)))
-        sceneView.scene.rootNode.addChildNode(developerText.node(scale: SCNVector3(x: 0.01, y: 0.01, z: 0.05), at: SCNVector3(x: -0.05, y: 0.0, z:-3)))
+        sceneView.scene.rootNode.addChildNode(titleText.node(scale: SCNVector3(x: 0.01, y: 0.01, z: 0.3), at: SCNVector3(x: -0.05, y: 0.2, z: -3)))
+        sceneView.scene.rootNode.addChildNode(developerText.node(scale: SCNVector3(x: 0.01, y: 0.01, z: 0.3), at: SCNVector3(x: -0.05, y: 0.0, z:-3)))
         sceneView.autoenablesDefaultLighting = true
     }
     
@@ -160,22 +166,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         showStartButtonContainer(false, animated: true)
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let touch = touches.first!
-        if let hit = sceneView.hitTest(touch.location(in: sceneView), options: nil).first {
-            selectedNode = hit.node
-            zDepth = sceneView.projectPoint(selectedNode.position).z
-        }
-    }
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard selectedNode != nil else { return }
-        let touch = touches.first!
-        let touchPoint = touch.location(in: sceneView)
-        selectedNode.position = sceneView.unprojectPoint(
-            SCNVector3(x: Float(touchPoint.x),
-                       y: Float(touchPoint.y),
-                       z: zDepth))
-    }
+    
+
     
     // This function is a way to load all the models we add to the project
     func load3DGarbageModels(_ models: [Model]) {
@@ -190,6 +182,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             // position the nodes representing the models
             var translation = matrix_identity_float4x4
             translation.columns.3.x = newXPosition
+            translation.columns.3.y = -1.0
             translation.columns.3.z = -newZPosition
             let newTransform = currentFrame.camera.transform * translation
             if let newNode = scaledNode(from: modelScene, scale: model.desiredScale, filteredName: model.filter), let index = sself.garbageModels.index(of: model) {
@@ -222,11 +215,15 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             .forEach {
                 print("adding node ", $0, " from the model file to the new node")
                 $0.scale = SCNVector3(1.0, 1.0, 1.0)
+                tagNode($0)
                 node.addChildNode($0)
             }
         return node
     }
-
+    
+    func tagNode(_ node: SCNNode) {
+        node.name = (node.name ?? "TrashNode") + String(describing: arc4random())
+    }
 
     // MARK: - ARSessionDelegate functions
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
@@ -240,6 +237,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
                         if hitResult.node.name == node.name {
                             modelFound = garbageModel
                             hitLabel.text = "Throw AWAY the TRASH"
+                            
                         }
                     })
                 }
@@ -343,11 +341,17 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     @IBAction func viewTapped(_ sender: UITapGestureRecognizer) {
         guard let model = modelFound, let anchor = model.anchor, let node = model.node else { return }
         sceneView.session.remove(anchor: anchor)
-        
         node.removeFromParentNode()
-
+        restartIfNecessary()
+    }
+    
+    func restartIfNecessary() {
+        guard sceneView.scene.rootNode.childNodes.count == 0 else { return }
+        startButton.setTitle("START ANOTHER ROUND?", for: .normal)
+        showStartButtonContainer(true, animated: true)
     }
 
 }
+
 
 
