@@ -11,10 +11,11 @@ import SceneKit//3d objects
 import ARKit
 import QuartzCore
 
-// name of object, object id, filter for unessasary nodes, ARAnchor, The node, and scale of the object
-struct Model: Equatable {
+
+// name of object, object id, filter for unessasary nodes, ARAnchor, The node, and scale of the object 
+ struct Model: Equatable {
     var filename: String
-    var id: UInt32
+    var id: UInt32 
     var filter: String?
     var anchor: ARAnchor?
     var node: SCNNode?
@@ -56,6 +57,15 @@ class MaterialText {
     }
 }
 
+
+        
+extension UIColor {
+    open class var transparentLightBlue: UIColor {
+        return UIColor(red: 90/255, green: 200/255, blue: 250/255, alpha: 0.50)
+    }
+}
+
+    
 class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
     @IBOutlet weak var interactionView: UIView!
@@ -68,49 +78,44 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     @IBOutlet weak var startButtonContainer: UIView!
     @IBOutlet weak var startContainerBottomConstraint: NSLayoutConstraint!
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return .landscape }
+    
     // We can just add the model file names to this array using the Model class and the load3DGarbageModels() function will add them to the scene
     var modelFound: Model?
     private var garbageModels = [Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
                                  Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
                                  Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
-                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick")
+                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
+                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
+                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
+                               
     ]
     
-    var timer = Timer()
-    let delay = 0.5
+  
+   
     private var isStartingGame = true
     private var garbageScene = SCNScene()
     private let titleText = MaterialText(text: SCNText(string:"Garbage cleanup", extrusionDepth:1), material: SCNMaterial(), color: UIColor.green)
     private let developerText = MaterialText(text: SCNText(string:"By:inVeNT", extrusionDepth:1), material: SCNMaterial(), color: UIColor.orange)
 
+    func setupSceneView(){
+        let configuration = ARWorldTrackingConfiguration()
+        configuration.planeDetection = .horizontal
+        sceneView.session.run(configuration)
+        sceneView.delegate = self
+    }
 
-
+   
+    
+    
     //runs when view loads
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let configuration = ARWorldTrackingConfiguration()
-        configuration.planeDetection = .horizontal
-       
-        sceneView.session.run(configuration)
+    
         
-        func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-            // This visualization covers only detected planes.
-            guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
-            
-            // Create a SceneKit plane to visualize the node using its position and extent.
-            let plane = SCNPlane(width: CGFloat(planeAnchor.extent.x), height: CGFloat(planeAnchor.extent.z))
-            let planeNode = SCNNode(geometry: plane)
-            planeNode.position = SCNVector3Make(planeAnchor.center.x, 0, planeAnchor.center.z)
-            
-            // SCNPlanes are vertically oriented in their local coordinate space.
-            // Rotate it to match the horizontal orientation of the ARPlaneAnchor.
-            planeNode.transform = SCNMatrix4MakeRotation(-Float.pi / 2, 1, 0, 0)
-            
-            // ARKit owns the node corresponding to the anchor, so make the plane a child node.
-            node.addChildNode(planeNode)
-        }
-
+        
+        
         // Create a new scene and set the scene to the view,
         // set the scene view's delegate, show statistics, and debug info
         sceneView.delegate = self
@@ -140,6 +145,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
         // Create a session configuration and run the view's session
         let configuration = ARWorldTrackingConfiguration()
+        configuration.planeDetection = .horizontal
+        
         sceneView.session.run(configuration)
 
         // Add the ship anchor and node only when we want to test putting the airplane model in the scene
@@ -176,10 +183,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
         let copyOfModels = models
         copyOfModels.forEach { [weak self] (model) in
-            guard let sself = self, let currentFrame = sceneView.session.currentFrame, let modelScene = SCNScene(named: model.filename) else { return }
-            // The next line is a VERY basic way to position the objects sequentially along the x axis but a fixed y coordinate
-            // and should be improved later to logically determine the horizontal surfaces and more intelligently
-            // position the nodes representing the models
+            guard let sself = self, let currentFrame = sceneView.session.currentFrame, let modelScene = SCNScene(named: model.filename) else { return}
             var translation = matrix_identity_float4x4
             translation.columns.3.x = newXPosition
             translation.columns.3.y = -1.0
@@ -192,8 +196,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
                 sself.sceneView.session.add(anchor: newAnchor)
                 sceneView.scene.rootNode.addChildNode(newNode)
             }
-            newXPosition += Float(1.0)
+            let newposition = arc4random_uniform(3) + 1
+            newXPosition += Float(newposition)
             newZPosition += Float(0.2)
+//            print("newposition = ",newposition," -- newXPosition = ",newXPosition)
         }
     }
 
@@ -225,6 +231,24 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         node.name = (node.name ?? "TrashNode") + String(describing: arc4random())
     }
 
+    
+    // MARK: - User screen tap response and game end functions
+
+    @IBAction func viewTapped(_ sender: UITapGestureRecognizer) {
+        guard let model = modelFound, let anchor = model.anchor, let node = model.node else { return }
+        sceneView.session.remove(anchor: anchor)
+        node.removeFromParentNode()
+        restartIfNecessary()
+    }
+
+    func restartIfNecessary() {
+        guard sceneView.scene.rootNode.childNodes.count == 0 else { return }
+        startButton.setTitle("START ANOTHER ROUND?", for: .normal)
+        showStartButtonContainer(true, animated: true)
+    }
+    
+
+    
     // MARK: - ARSessionDelegate functions
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         // Find out if there are any nodes 3D space that line up with the center of the scene view using the 2D center point
@@ -237,7 +261,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
                         if hitResult.node.name == node.name {
                             modelFound = garbageModel
                             hitLabel.text = "Throw AWAY the TRASH"
-                            
                         }
                     })
                 }
@@ -288,10 +311,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         })
     }
 
-    func processNodeFound(_ node: SCNNode) {
-        hitLabel.text = "TRASH SPOTTED!"
-    }
-
     // This version of the 'nodeFor' ARSCNViewDelegate function works with the new approach of adding
     // anchors corresponding to the garbage model objects we add to our app
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
@@ -301,6 +320,43 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             if garbageModel.anchor == anchor { nodeFound = garbageModel.node }
         }
         return nodeFound
+    }
+
+    
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        // 1
+        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+        
+        // 2
+        let width = CGFloat(planeAnchor.extent.x)
+        let height = CGFloat(planeAnchor.extent.z)
+//        let plane = SCNPlane(width: width, height: height)
+        
+        // 3
+        plane.materials.first?.diffuse.contents = UIColor.transparentLightBlue
+        
+        // 4
+//        let planeNode = SCNNode(geometry: plane)
+        
+        // 5
+        let x = CGFloat(planeAnchor.center.x)
+        let y = CGFloat(planeAnchor.center.y)
+        let z = CGFloat(planeAnchor.center.z)
+        planeNode.position = SCNVector3(x,y,z)
+        planeNode.eulerAngles.x = -.pi / 2
+        
+        // 6
+        sceneView.scene.rootNode.addChildNode(planeNode)
+        
+      
+//        planeNode.position = SCNVector3Make(planeAnchor.center.x, 0, planeAnchor.center.z)
+//        
+//        // SCNPlanes are vertically oriented in their local coordinate space.
+//        // Rotate it to match the horizontal orientation of the ARPlaneAnchor.
+//        planeNode.transform = SCNMatrix4MakeRotation(-Float.pi / 2, 1, 0, 0)
+//        
+//        // ARKit owns the node corresponding to the anchor, so make the plane a child node.
+//        node.addChildNode(planeNode)
     }
 
 
@@ -318,7 +374,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 //    }
 
 
-    // Our test functions that we're not using now
+    // OLD UNUSED CODE -- Our test functions that we're not using now
     func createShip(){
         guard let cameraTransform = sceneView.session.currentFrame?.camera.transform else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: { [weak self] in
@@ -337,19 +393,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         let touchLocation = sender.location(in: interactionView)
         print("pan gesture recognizer action method called! -- ", touchLocation)
     }
-
-    @IBAction func viewTapped(_ sender: UITapGestureRecognizer) {
-        guard let model = modelFound, let anchor = model.anchor, let node = model.node else { return }
-        sceneView.session.remove(anchor: anchor)
-        node.removeFromParentNode()
-        restartIfNecessary()
+    
+    func processNodeFound(_ node: SCNNode) {
+        hitLabel.text = "TRASH SPOTTED!"
     }
     
-    func restartIfNecessary() {
-        guard sceneView.scene.rootNode.childNodes.count == 0 else { return }
-        startButton.setTitle("START ANOTHER ROUND?", for: .normal)
-        showStartButtonContainer(true, animated: true)
-    }
 
 }
 
