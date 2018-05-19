@@ -119,7 +119,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         // Create a new scene and set the scene to the view,
         // set the scene view's delegate, show statistics, and debug info
         sceneView.delegate = self
-        sceneView.session.delegate = self
+//        sceneView.session.delegate = self
         sceneView.showsStatistics = true
 
         // We were trying to add the ship to the scene directly here
@@ -154,7 +154,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        showStartButtonContainer(true, animated: true)
+//        showStartButtonContainer(true, animated: true)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -169,8 +169,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             child.removeFromParentNode()
         }
 
-        load3DGarbageModels(garbageModels)
-        showStartButtonContainer(false, animated: true)
+//        load3DGarbageModels(garbageModels)
+//        showStartButtonContainer(false, animated: true)
     }
     
     
@@ -252,25 +252,25 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     // MARK: - ARSessionDelegate functions
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         // Find out if there are any nodes 3D space that line up with the center of the scene view using the 2D center point
-        let hitResults = sceneView.hitTest(centerView.center, options: nil)
-        if !hitResults.isEmpty {
-            hitResults.forEach { [weak self] (hitResult) in
-                self?.garbageModels.forEach { (garbageModel) in
-                    guard let rootNode = garbageModel.node else { return }
-                    rootNode.childNodes.forEach({ (node) in
-                        if hitResult.node.name == node.name {
-                            modelFound = garbageModel
-                            hitLabel.text = "Throw AWAY the TRASH"
-                        }
-                    })
-                }
-            }
-
-        } else {
-            hitLabel.text = "find it"
-            modelFound = nil
-            
-        }
+//        let hitResults = sceneView.hitTest(centerView.center, options: nil)
+//        if !hitResults.isEmpty {
+//            hitResults.forEach { [weak self] (hitResult) in
+//                self?.garbageModels.forEach { (garbageModel) in
+//                    guard let rootNode = garbageModel.node else { return }
+//                    rootNode.childNodes.forEach({ (node) in
+//                        if hitResult.node.name == node.name {
+//                            modelFound = garbageModel
+//                            hitLabel.text = "Throw AWAY the TRASH"
+//                        }
+//                    })
+//                }
+//            }
+//
+//        } else {
+//            hitLabel.text = "find it"
+//            modelFound = nil
+//
+//        }
     }
 
     // MARK: - ARSCNViewDelegate functions
@@ -314,40 +314,61 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     // This version of the 'nodeFor' ARSCNViewDelegate function works with the new approach of adding
     // anchors corresponding to the garbage model objects we add to our app
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        var nodeFound: SCNNode?
+        guard let planeAnchor = anchor as? ARPlaneAnchor else {
+            var nodeFound: SCNNode?
 
-        garbageModels.forEach { (garbageModel) in
-            if garbageModel.anchor == anchor { nodeFound = garbageModel.node }
+            garbageModels.forEach { (garbageModel) in
+                if garbageModel.anchor == anchor { nodeFound = garbageModel.node }
+            }
+            return nodeFound
         }
-        return nodeFound
-    }
-
-    
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        // 1
-        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
-        
         // 2
         let width = CGFloat(planeAnchor.extent.x)
         let height = CGFloat(planeAnchor.extent.z)
-//        let plane = SCNPlane(width: width, height: height)
-        
+        let plane = SCNPlane(width: width, height: height)
+
         // 3
-        plane.materials.first?.diffuse.contents = UIColor.transparentLightBlue
-        
+        plane.materials.first?.diffuse.contents = UIColor.red
+
         // 4
-//        let planeNode = SCNNode(geometry: plane)
-        
+        let planeNode = SCNNode(geometry: plane)
+
         // 5
         let x = CGFloat(planeAnchor.center.x)
         let y = CGFloat(planeAnchor.center.y)
         let z = CGFloat(planeAnchor.center.z)
         planeNode.position = SCNVector3(x,y,z)
         planeNode.eulerAngles.x = -.pi / 2
-        
+
         // 6
-        sceneView.scene.rootNode.addChildNode(planeNode)
-        
+        return planeNode
+    }
+
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        // 1
+//        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
+//
+//        // 2
+//        let width = CGFloat(planeAnchor.extent.x)
+//        let height = CGFloat(planeAnchor.extent.z)
+//        let plane = SCNPlane(width: width, height: height)
+//
+//        // 3
+//        plane.materials.first?.diffuse.contents = UIColor.red
+//
+//        // 4
+//        let planeNode = SCNNode(geometry: plane)
+//
+//        // 5
+//        let x = CGFloat(planeAnchor.center.x)
+//        let y = CGFloat(planeAnchor.center.y)
+//        let z = CGFloat(planeAnchor.center.z)
+//        planeNode.position = SCNVector3(x,y,z)
+//        planeNode.eulerAngles.x = -.pi / 2
+//
+//        // 6
+//        sceneView.scene.rootNode.addChildNode(planeNode)
+
       
 //        planeNode.position = SCNVector3Make(planeAnchor.center.x, 0, planeAnchor.center.z)
 //        
