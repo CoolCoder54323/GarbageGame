@@ -2,17 +2,15 @@
 //  ViewController.swift
 //  first ar project
 //
-//  Created by Nicholas Dixon on 12/27/17.
+//  Created by Nicholas Dixon, Thomas , and Jack  on 12/27/17.
 //  Copyright © 2017 Nicholas Dixon. All rights reserved.
 //
 
+import Foundation
 import UIKit
-import SceneKit//3d objects
+import SceneKit
 import ARKit
-import QuartzCore
 
-
-// name of object, object id, filter for unessasary nodes, ARAnchor, The node, and scale of the object 
  struct Model: Equatable {
     var filename: String
     var id: UInt32 
@@ -58,79 +56,55 @@ class MaterialText {
 }
 
 
-        
-extension UIColor {
-    open class var transparentLightBlue: UIColor {
-        return UIColor(red: 90/255, green: 200/255, blue: 250/255, alpha: 0.50)
-    }
-}
-
-    
 class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
 
+    @IBOutlet weak var pauseButton: UIButton! {
+        didSet {
+            pauseButton.setImage(#imageLiteral(resourceName: "pauseButton"), for: .normal)
+        }
+    }
+    @IBOutlet weak var exitButton: UIButton! {
+        didSet{
+            self.exitButton.setImage(#imageLiteral(resourceName: "exitButton"), for: .normal)
+        }
+    }
+    
+    @IBOutlet weak var trashCan: UIImageView!
     @IBOutlet weak var interactionView: UIView!
     @IBOutlet weak var hitLabel: UILabel!
     @IBOutlet weak var centerView: UIView!
-    @IBOutlet weak var panGestureRecognizer: UIPanGestureRecognizer!
     @IBOutlet weak var sceneView: ARSCNView!  //displaying a view of flight camera feed in which we are going to display our 3d objects
     @IBOutlet weak var startButton: UIButton!
     @IBOutlet weak var blockerView: UIView!
     @IBOutlet weak var startButtonContainer: UIView!
     @IBOutlet weak var startContainerBottomConstraint: NSLayoutConstraint!
 
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { return .landscape }
+    let configuration = ARWorldTrackingConfiguration()
     
-    // We can just add the model file names to this array using the Model class and the load3DGarbageModels() function will add them to the scene
-    var modelFound: Model?
+    private var modelFound: Model?
     private var garbageModels = [Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
                                  Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
                                  Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
                                  Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
-                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
-                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick"),
-                               
-    ]
+                                 Model(filename: "art.scnassets/chips-sticks-open.dae", filter: "stick")]
     
   
-   
+    private var startButtonPressed = false
     private var isStartingGame = true
     private var garbageScene = SCNScene()
     private let titleText = MaterialText(text: SCNText(string:"Garbage cleanup", extrusionDepth:1), material: SCNMaterial(), color: UIColor.green)
     private let developerText = MaterialText(text: SCNText(string:"By:inVeNT", extrusionDepth:1), material: SCNMaterial(), color: UIColor.orange)
 
-    func setupSceneView(){
-        let configuration = ARWorldTrackingConfiguration()
-        configuration.planeDetection = .horizontal
-        sceneView.session.run(configuration)
-        sceneView.delegate = self
-    }
-
-   
     
-    
-    //runs when view loads
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-    
-        
-        
-        
-        // Create a new scene and set the scene to the view,
-        // set the scene view's delegate, show statistics, and debug info
-        sceneView.delegate = self
-//        sceneView.session.delegate = self
-        sceneView.showsStatistics = true
 
-        // We were trying to add the ship to the scene directly here
-        // but fround out that we have to use this method OR the method of adding an anchor
-        // to the sceneView.session and then return the corresponding node
-        // in the "renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor)" function below
-//        let nodeModel:SCNNode!
-//        let nodeName = "ship"
-//        let modelScene = SCNScene(named : "ship.scn")!
-//        nodeModel =  modelScene.rootNode.childNode(withName: nodeName, recursively: true)
-//        sceneView.scene.rootNode.addChildNode(cigarette)
+        configuration.planeDetection = .horizontal
+        trashCan.image = #imageLiteral(resourceName: "trashClosed")
+        
+        sceneView.delegate = self
+        sceneView.session.delegate = self
+        sceneView.showsStatistics = true
 
         showStartButtonContainer(false, animated: false)
         startButton.setTitle("START THE GAME", for: .normal)
@@ -142,25 +116,15 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
-        // Create a session configuration and run the view's session
-        let configuration = ARWorldTrackingConfiguration()
-        configuration.planeDetection = .horizontal
-        
         sceneView.session.run(configuration)
-
-        // Add the ship anchor and node only when we want to test putting the airplane model in the scene
-        // createShip()
     }
     
     override func viewDidAppear(_ animated: Bool) {
-//        showStartButtonContainer(true, animated: true)
+        showStartButtonContainer(true, animated: true)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
-        // Pause the view's session
         sceneView.session.pause()
     }
 
@@ -168,15 +132,46 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         sceneView.scene.rootNode.childNodes.forEach { (child) in
             child.removeFromParentNode()
         }
-
-//        load3DGarbageModels(garbageModels)
-//        showStartButtonContainer(false, animated: true)
+        
+        load3DGarbageModels(garbageModels)
+        showStartButtonContainer(false, animated: true)
+        startButtonPressed = true
     }
     
+    @IBAction func viewTapped(_ sender: UITapGestureRecognizer) {
+        guard let model = modelFound, let anchor = model.anchor, let node = model.node else { return }
+        sceneView.session.remove(anchor: anchor)
+        node.removeFromParentNode()
+        restartIfNecessary()
+    }
     
+    @IBAction func pausePressed(_ sender: Any) {
+        if self.pauseButton.imageView?.image == #imageLiteral(resourceName: "pauseButton"){
+            self.pauseButton.setImage(#imageLiteral(resourceName: "playButton"), for: .normal)
+            self.sceneView.session.pause()
+        } else {
+            self.pauseButton.setImage(#imageLiteral(resourceName: "pauseButton"), for: .normal)
+            self.sceneView.session.run(configuration)
+        }
+    }
+    
+    @IBAction func exitPressed(_ sender: Any) {
+        let alertController = UIAlertController.init(title: "Exit", message: "Are you sure you want to exit", preferredStyle: .alert)
+        let cancelAction = UIAlertAction(title: "cancel", style: .cancel, handler: nil)
+        let exitAction = UIAlertAction(title: "exit" , style: .default) { (_) in
+            self.exitApp()
+        }
 
+        alertController.addAction(exitAction)
+        alertController.addAction(cancelAction)
+        
+        self.present(alertController, animated: true, completion: nil)
+    }
     
-    // This function is a way to load all the models we add to the project
+    func exitApp() {
+        exit(0)
+    }
+    
     func load3DGarbageModels(_ models: [Model]) {
         var newXPosition: Float = Float(0.0)
         var newZPosition: Float = Float(1.0)
@@ -199,11 +194,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             let newposition = arc4random_uniform(3) + 1
             newXPosition += Float(newposition)
             newZPosition += Float(0.2)
-//            print("newposition = ",newposition," -- newXPosition = ",newXPosition)
         }
     }
 
-    // This allows us to extract and filter out the parts of the model, scale them, and create an SCNNode from them to put in the scene
     func scaledNode(from scene: SCNScene, scale: SCNVector3 = SCNVector3(1.0, 1.0, 1.0), filteredName: String? = nil) -> SCNNode? {
         guard !scene.rootNode.childNodes.isEmpty else { return nil }
 
@@ -230,69 +223,61 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     func tagNode(_ node: SCNNode) {
         node.name = (node.name ?? "TrashNode") + String(describing: arc4random())
     }
-
     
-    // MARK: - User screen tap response and game end functions
-
-    @IBAction func viewTapped(_ sender: UITapGestureRecognizer) {
-        guard let model = modelFound, let anchor = model.anchor, let node = model.node else { return }
-        sceneView.session.remove(anchor: anchor)
-        node.removeFromParentNode()
-        restartIfNecessary()
-    }
-
     func restartIfNecessary() {
         guard sceneView.scene.rootNode.childNodes.count == 0 else { return }
         startButton.setTitle("START ANOTHER ROUND?", for: .normal)
         showStartButtonContainer(true, animated: true)
     }
     
-
-    
-    // MARK: - ARSessionDelegate functions
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        // Find out if there are any nodes 3D space that line up with the center of the scene view using the 2D center point
-//        let hitResults = sceneView.hitTest(centerView.center, options: nil)
-//        if !hitResults.isEmpty {
-//            hitResults.forEach { [weak self] (hitResult) in
-//                self?.garbageModels.forEach { (garbageModel) in
-//                    guard let rootNode = garbageModel.node else { return }
-//                    rootNode.childNodes.forEach({ (node) in
-//                        if hitResult.node.name == node.name {
-//                            modelFound = garbageModel
-//                            hitLabel.text = "Throw AWAY the TRASH"
-//                        }
-//                    })
-//                }
-//            }
-//
-//        } else {
-//            hitLabel.text = "find it"
-//            modelFound = nil
-//
-//        }
+        let hitResults = sceneView.hitTest(centerView.center, options: nil)
+        if !hitResults.isEmpty {
+            hitResults.forEach { [weak self] (hitResult) in
+                self?.garbageModels.forEach { (garbageModel) in
+                    guard let rootNode = garbageModel.node else { return }
+                    rootNode.childNodes.forEach({ (node) in
+                        if hitResult.node.name == node.name {
+                            modelFound = garbageModel
+                            hitLabel.text = "Throw AWAY the TRASH"
+                            trashCan.image = #imageLiteral(resourceName: "trash")
+                        }
+                    })
+                }
+            }
+
+        } else {
+            
+            if startButtonPressed == true {
+                let nodesLeft = sceneView.scene.rootNode.childNodes.count
+                if nodesLeft > 0 {
+                    let plural = nodesLeft == 1 ? "bag" : "bags"
+                    let linkingVerb = nodesLeft == 1 ? "is" : "are"
+                    hitLabel.text = String(format: "Find Them (there %@ %ld chip %@ left)", linkingVerb, sceneView.scene.rootNode.childNodes.count,plural)
+                } else {
+                    hitLabel.text = "You have found and discarded all the chip bags and won the game!!"
+                    
+                }
+            
+            }
+            trashCan.image = #imageLiteral(resourceName: "trashClosed")
+            modelFound = nil
+
+        }
     }
 
-    // MARK: - ARSCNViewDelegate functions
-
     func session(_ session: ARSession, didFailWithError error: Error) {
-        // Present an error message to the user
-        showError(title: "ERROR", message: "Please stop the app and try again.")
+        showError(title: "AR Session Failure Error", message: "Please exit the app and try again.")
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
-        // Inform the user that the session has been interrupted, for example, by presenting an overlay
-        showError(title: "ERROR", message: "Please stop the app and try again.")
+        showError(title: "AR Session Interrupted", message: "Please press OK and exit the app if necessary.")
     }
     
     func sessionInterruptionEnded(_ session: ARSession) {
-        // Reset tracking and/or remove existing anchors if consistent tracking is required
-        showError(title: "ERROR", message: " Please stop the app and try again.")
+        showError(title: "AR Session Interruption Ended", message: "Please press OK try again.")
     }
 
-    // MARK: - Helper Functions
-
-    // This gives us an easy way to put up an error message on the screen
     func showError(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let okAction = UIAlertAction(title: "Ok", style: .cancel, handler: nil)
@@ -311,115 +296,14 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         })
     }
 
-    // This version of the 'nodeFor' ARSCNViewDelegate function works with the new approach of adding
-    // anchors corresponding to the garbage model objects we add to our app
     func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        guard let planeAnchor = anchor as? ARPlaneAnchor else {
-            var nodeFound: SCNNode?
+        var nodeFound: SCNNode?
 
-            garbageModels.forEach { (garbageModel) in
-                if garbageModel.anchor == anchor { nodeFound = garbageModel.node }
-            }
-            return nodeFound
+        garbageModels.forEach { (garbageModel) in
+            if garbageModel.anchor == anchor { nodeFound = garbageModel.node }
         }
-        // 2
-        let width = CGFloat(planeAnchor.extent.x)
-        let height = CGFloat(planeAnchor.extent.z)
-        let plane = SCNPlane(width: width, height: height)
-
-        // 3
-        plane.materials.first?.diffuse.contents = UIColor.red
-
-        // 4
-        let planeNode = SCNNode(geometry: plane)
-
-        // 5
-        let x = CGFloat(planeAnchor.center.x)
-        let y = CGFloat(planeAnchor.center.y)
-        let z = CGFloat(planeAnchor.center.z)
-        planeNode.position = SCNVector3(x,y,z)
-        planeNode.eulerAngles.x = -.pi / 2
-
-        // 6
-        return planeNode
+        return nodeFound
     }
-
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        // 1
-//        guard let planeAnchor = anchor as? ARPlaneAnchor else { return }
-//
-//        // 2
-//        let width = CGFloat(planeAnchor.extent.x)
-//        let height = CGFloat(planeAnchor.extent.z)
-//        let plane = SCNPlane(width: width, height: height)
-//
-//        // 3
-//        plane.materials.first?.diffuse.contents = UIColor.red
-//
-//        // 4
-//        let planeNode = SCNNode(geometry: plane)
-//
-//        // 5
-//        let x = CGFloat(planeAnchor.center.x)
-//        let y = CGFloat(planeAnchor.center.y)
-//        let z = CGFloat(planeAnchor.center.z)
-//        planeNode.position = SCNVector3(x,y,z)
-//        planeNode.eulerAngles.x = -.pi / 2
-//
-//        // 6
-//        sceneView.scene.rootNode.addChildNode(planeNode)
-
-      
-//        planeNode.position = SCNVector3Make(planeAnchor.center.x, 0, planeAnchor.center.z)
-//        
-//        // SCNPlanes are vertically oriented in their local coordinate space.
-//        // Rotate it to match the horizontal orientation of the ARPlaneAnchor.
-//        planeNode.transform = SCNMatrix4MakeRotation(-Float.pi / 2, 1, 0, 0)
-//        
-//        // ARKit owns the node corresponding to the anchor, so make the plane a child node.
-//        node.addChildNode(planeNode)
-    }
-
-
-    // MARK: - Functions we're not using now
-
-    // This next ARSCNViewDelegate function that for now works only when the createShip() function is called
-    // -- when the anchor is added to the session, this method is called to return a node
-    // right now we're not using it
-//    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-//        let boxGeometry = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.0)
-//        boxGeometry.firstMaterial?.diffuse.contents = UIImage(named: "art.scnassets/ship.scn")
-//        let boxNode = SCNNode(geometry: boxGeometry)
-//        boxNode.position = SCNVector3(0, 0, -1.5)
-//        return boxNode
-//    }
-
-
-    // OLD UNUSED CODE -- Our test functions that we're not using now
-    func createShip(){
-        guard let cameraTransform = sceneView.session.currentFrame?.camera.transform else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: { [weak self] in
-                self?.createShip()
-            })
-            return
-        }
-        var translation = matrix_identity_float4x4
-        translation.columns.3.z = -1.0
-        let shipTransform = cameraTransform * translation
-        let ship = ARAnchor(transform: shipTransform)
-        sceneView.session.add(anchor: ship)
-    }
-
-    @IBAction func panGestureTouched(_ sender: UIPanGestureRecognizer) {
-        let touchLocation = sender.location(in: interactionView)
-        print("pan gesture recognizer action method called! -- ", touchLocation)
-    }
-    
-    func processNodeFound(_ node: SCNNode) {
-        hitLabel.text = "TRASH SPOTTED!"
-    }
-    
-
 }
 
 
